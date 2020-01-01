@@ -4,12 +4,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const exphbs = require('express-handlebars');
+const path = require('path');
 const mysql =  require('mysql');
 
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended : true }));
+
+app.set('views', path.join(__dirname, 'views'));
+app.engine('handlebars', exphbs({defaultLayout : 'main'}));
+app.set('view engine', 'handlebars');
 
 //Create database connection
 const db = mysql.createConnection({
@@ -47,7 +52,7 @@ app.get('/createitemstable', (req, res) => {
 
 //Generate OTP and update it to table, also render a form
 app.get('/', (req, res) => {
-    res.render('initial');                  //Take a name and generate an OTP
+    res.render('home');                  //Take a name and generate an OTP
 });
 
 app.post('/generate', (req, res) => {
@@ -56,15 +61,39 @@ app.post('/generate', (req, res) => {
     console.log(number);
     let item = {name : req.body.name, pass : number};
     let sql = `INSERT INTO items SET ?`;
-    db.query(sql, item, (err, res) => {
+    db.query(sql, item, (err, results) => {
         if(err) throw err;
         console.log(results);
+        res.render('verify');
     });
 });
 
-//verify the otp sent to the user
-app.get('/verify', (req, res) => {
-    
+//Verify the otp entered by the user. If valid then verification was successful and delete the entry from table
+//since OTP means one-time password
+app.post('/verify', (req, res) => {
+    let pin = req.body.pass;
+    let sql = `SELECT * FROM items WHERE pass = '${pin}'`;
+    db.query(sql, (err, results) => {
+        if(err){
+            throw err;
+        }
+        sql = `SELECT COUNT(*) FROM items WHERE pass = '${pin}'`;
+        db.query(sql, (err, results) => {
+            if(err) throw err;
+            if(results > 1){
+                res.send("Invalid OTP");
+            }
+            else{
+                console.log(results);
+                res.send("User Verification Complete.")
+                let sql1 = `DELETE FROM items WHERE pass = '${pin}'`;
+                db.query(sql1, (err, results) => {
+                    if(err) throw err;
+                    console.log(results);
+                });
+            }
+        });
+    });
 });
 
 app.listen(3000, () => {

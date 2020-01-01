@@ -47,14 +47,24 @@ app.get('/createitemstable', (req, res) => {
 
 //Generate OTP and update it to table, also render a form
 app.get('/', (req, res) => {
+    res.render('initial');                  //Take a name and generate an OTP
+});
+
+app.post('/generate', (req, res) => {
     //5-digit OTP
     let number = 10000 + Math.floor(Math.random() * 89999);
     console.log(number);
-
+    let item = {name : req.body.name, pass : number};
+    let sql = `INSERT INTO items SET ?`;
+    db.query(sql, item, (err, res) => {
+        if(err) throw err;
+        console.log(results);
+    });
 });
 
+//verify the otp sent to the user
 app.get('/verify', (req, res) => {
-
+    
 });
 
 app.listen(3000, () => {

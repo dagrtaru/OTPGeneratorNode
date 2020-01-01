@@ -35,6 +35,16 @@ app.get('/createdb', (req, res) => {
     });
 });
 
+//Create a table in the database
+app.get('/createitemstable', (req, res) => {
+    let sql = `CREATE TABLE items(items_id int AUTO_INCREMENT, name VARCHAR(255), pass VARCHAR(255), PRIMARY KEY (items_id))`;
+    db.query(sql, (err, results) => {
+        if(err) throw err;
+        console.log(results);
+        res.send("Items table created");
+    });
+});
+
 //Generate OTP and update it to table, also render a form
 app.get('/', (req, res) => {
     //5-digit OTP

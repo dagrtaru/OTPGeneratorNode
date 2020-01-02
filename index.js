@@ -16,6 +16,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.engine('handlebars', exphbs({defaultLayout : 'main'}));
 app.set('view engine', 'handlebars');
 
+//Creating a twilio object. authToken value is to be replaced.
+const accountSid = 'AC9d09f90bcdd9907522ab142acf8e084f';
+const authToken = 'my_auth_token';
+const client = require('twilio')(accountSid, authToken);
+
+
 //Create database connection
 const db = mysql.createConnection({
     host : 'localhost',
@@ -59,6 +65,11 @@ app.post('/generate', (req, res) => {
     //5-digit OTP
     let number = 10000 + Math.floor(Math.random() * 89999);
     console.log(number);
+    client.messages.create({
+        body: 'number.toString()',
+        from: '+12017786590',
+        to: '+91999999999'
+      }).then(message => console.log(message.sid));
     let item = {name : req.body.name, pass : number};
     let sql = `INSERT INTO items SET ?`;
     db.query(sql, item, (err, results) => {
@@ -66,6 +77,7 @@ app.post('/generate', (req, res) => {
         console.log(results);
         res.render('verify');
     });
+    res.end()
 });
 
 //Verify the otp entered by the user. If valid then verification was successful and delete the entry from table

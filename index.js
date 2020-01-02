@@ -77,19 +77,20 @@ app.post('/verify', (req, res) => {
         if(err){
             throw err;
         }
-        sql = `SELECT COUNT(*) FROM items WHERE pass = '${pin}'`;
-        db.query(sql, (err, results) => {
-            if(err) throw err;
-            if(results > 1){
+        sql = `SELECT COUNT(*) as cnt FROM items WHERE pass = '${pin}'`;
+        db.query(sql, (err1, results1) => {
+            if(err1) throw err1;
+            //let obj = JSON.parse(JSON.stringify(results1));
+            if(results1[0].cnt != 1){
                 res.send("Invalid OTP");
+                console.log(results1[0].cnt);
             }
             else{
-                console.log(results);
-                res.send("User Verification Complete.")
+                res.send("User Verification Complete.");
                 let sql1 = `DELETE FROM items WHERE pass = '${pin}'`;
-                db.query(sql1, (err, results) => {
-                    if(err) throw err;
-                    console.log(results);
+                db.query(sql1, (err2, results2) => {
+                    if(err2) throw err2;
+                    console.log(results2);
                 });
             }
         });
